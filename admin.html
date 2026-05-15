@@ -3,65 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRE Admin Panel</title>
+    <title>CRE QUIZ - ADMIN PANEL</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; }
-        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        h2 { color: #1c3d8e; text-align: center; }
-        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
-        button { width: 100%; padding: 12px; background: #4caf50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .student-list { font-size: 0.9rem; }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2, h3 { color: #1a365d; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #1a365d; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+        button:hover { background-color: #2a4d7c; }
+        .btn-delete { background-color: #e53e3e; padding: 5px 10px; width: auto; font-size: 14px; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-delete:hover { background-color: #c53030; }
+        .clear-all { background-color: #dd6b20; margin-bottom: 20px; color: white; }
+        .clear-all:hover { background-color: #c05621; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #1a365d; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .list-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>ചോദ്യങ്ങൾ ചേർക്കുക</h2>
-    <textarea id="q" placeholder="ചോദ്യം"></textarea>
-    <input type="text" id="o1" placeholder="ഓപ്ഷൻ 1">
-    <input type="text" id="o2" placeholder="ഓപ്ഷൻ 2">
-    <input type="text" id="o3" placeholder="ഓപ്ഷൻ 3">
-    <input type="text" id="o4" placeholder="ഓപ്ഷൻ 4">
-    <input type="number" id="c" placeholder="ശരിയായ ഓപ്ഷൻ നമ്പർ (0-3)">
-    <button onclick="addQ()">ADD QUESTION</button>
+<div class="container">
+    <h2>CRE QUIZ - അഡ്മിൻ പാനൽ</h2>
+
+    <div class="form-section">
+        <h3>പുതിയ ചോദ്യം ചേർക്കുക</h3>
+        <div class="form-group">
+            <label>ചോദ്യം:</label>
+            <input type="text" id="questionText" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക">
+        </div>
+        <div class="form-group"><label>ഓപ്ഷൻ 1:</label><input type="text" id="opt0"></div>
+        <div class="form-group"><label>ഓപ്ഷൻ 2:</label><input type="text" id="opt1"></div>
+        <div class="form-group"><label>ഓപ്ഷൻ 3:</label><input type="text" id="opt2"></div>
+        <div class="form-group"><label>ഓപ്ഷൻ 4:</label><input type="text" id="opt3"></div>
+        <div class="form-group">
+            <label>ശരിയായ ഉത്തരം ഏത് ഓപ്ഷൻ ആണ്?</label>
+            <select id="correctIndex">
+                <option value="0">ഓപ്ഷൻ 1</option>
+                <option value="1">ഓപ്ഷൻ 2</option>
+                <option value="2">ഓപ്ഷൻ 3</option>
+                <option value="3">ഓപ്ഷൻ 4</option>
+            </select>
+        </div>
+        <button onclick="addQuestion()">ചോദ്യം സേവ് ചെയ്യുക</button>
+    </div>
+
+    <div class="list-section">
+        <h3>നിലവിലുള്ള ചോദ്യങ്ങൾ</h3>
+        <table id="questionsTable">
+            <thead>
+                <tr>
+                    <th>ചോദ്യം</th>
+                    <th>നടപടി</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="list-section">
+        <h3>വിദ്യാർത്ഥികളുടെ മാർക്ക് ലിസ്റ്റ് (Toppers List)</h3>
+        <button class="clear-all" onclick="clearAllStudents()">മുഴുവൻ മാർക്ക് ലിസ്റ്റും ഡിലീറ്റ് ചെയ്യുക</button>
+        <table id="studentsTable">
+            <thead>
+                <tr>
+                    <th>പേര്</th>
+                    <th>മാർക്ക്</th>
+                    <th>നടപടി</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
-<div class="card">
-    <h2>വിദ്യാർത്ഥികളുടെ മാർക്ക്</h2>
-    <div id="results" class="student-list">ലോഡ് ചെയ്യുന്നു...</div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyDlfQj9aXExdD9on2Fl9yyq789HF0p3_dU",
+        apiKey: "AIzaSyDlTqjj9eXFxdO9on2Ff19yyq7",
         authDomain: "crequizapp.firebaseapp.com",
         projectId: "crequizapp",
-        storageBucket: "crequizapp.firebasestorage.app",
+        storageBucket: "crequizapp.appspot.com",
         messagingSenderId: "273500358959",
-        appId: "1:273500358959:web:eb59a5b743c92d16d8b9da"
+        appId: "1:273500358959:web:eb59a5b743c92c16d8b9cb"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
 
-    function addQ() {
-        const text = document.getElementById('q').value;
-        const opts = [document.getElementById('o1').value, document.getElementById('o2').value, document.getElementById('o3').value, document.getElementById('o4').value];
-        const correct = parseInt(document.getElementById('c').value);
+    window.onload = function() {
+        loadQuestions();
+        loadStudents();
+    };
 
-        db.collection("quiz_questions").add({ question: text, options: opts, correctIndex: correct })
-        .then(() => alert("ചോദ്യം ചേർത്തു!"));
+    function addQuestion() {
+        const qText = document.getElementById('questionText').value;
+        const o0 = document.getElementById('opt0').value;
+        const o1 = document.getElementById('opt1').value;
+        const o2 = document.getElementById('opt2').value;
+        const o3 = document.getElementById('opt3').value;
+        const cIndex = parseInt(document.getElementById('correctIndex').value);
+
+        if(!qText || !o0 || !o1 || !o2 || !o3) {
+            alert("എല്ലാ കോളങ്ങളും പൂരിപ്പിക്കുക!");
+            return;
+        }
+
+        db.collection("quiz_questions").add({
+            question: qText,
+            options: [o0, o1, o2, o3],
+            correctIndex: cIndex
+        }).then(() => {
+            alert("ചോദ്യം വിജയകരമായി ചേർത്തു!");
+            location.reload();
+        });
     }
 
-    db.collection("students").orderBy("score", "desc").onSnapshot(snap => {
-        let html = "";
-        snap.forEach(doc => {
-            const d = doc.data();
-            html += `<p><b>${d.name}:</b> ${d.score}/10</p>`;
+    function loadQuestions() {
+        const tbody = document.querySelector("#questionsTable tbody");
+        tbody.innerHTML = "<tr><td colspan='2'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
+        
+        db.collection("quiz_questions").get().then((querySnapshot) => {
+            tbody.innerHTML = "";
+            if(querySnapshot.empty) {
+                tbody.innerHTML = "<tr><td colspan='2'>ചോദ്യങ്ങൾ ഒന്നും തന്നെ ലഭ്യമല്ല.</td></tr>";
+                return;
+            }
+            querySnapshot.forEach((doc) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${doc.data().question}</td><td><button class="btn-delete" onclick="deleteQuestion('${doc.id}')">Delete</button></td>`;
+                tbody.appendChild(tr);
+            });
         });
-        document.getElementById('results').innerHTML = html;
-    });
+    }
+
+    function deleteQuestion(id) {
+        if(confirm("ഈ ചോദ്യം ഡാറ്റാബേസിൽ നിന്നും XML ഒഴിവാക്കണോ?")) {
+            db.collection("quiz_questions").doc(id).delete().then(() => {
+                alert("ചോദ്യം ഒഴിവാക്കി!");
+                loadQuestions();
+            });
+        }
+    }
+
+    function loadStudents() {
+        const tbody = document.querySelector("#studentsTable tbody");
+        tbody.innerHTML = "<tr><td colspan='3'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
+        
+        db.collection("students").get().then((querySnapshot) => {
+            tbody.innerHTML = "";
+            if(querySnapshot.empty) {
+                tbody.innerHTML = "<tr><td colspan='3'>പരീക്ഷ എഴുതിയവരുടെ വിവരങ്ങൾ നിലവിലില്ല.</td></tr>";
+                return;
+            }
+            
+            let studentsList = [];
+            querySnapshot.forEach((doc) => {
+                // ഇവിടെ doc.id തന്നെയായിരിക്കും കുട്ടിയുടെ പേര്
+                studentsList.push({ id: doc.id, ...doc.data() });
+            });
+            studentsList.sort((a, b) => b.score - a.score);
+
+            studentsList.forEach((data) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${data.name}</td><td>${data.score}</td><td><button class="btn-delete" onclick="deleteStudent('${data.id}')">Remove</button></td>`;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function deleteStudent(id) {
+        if(confirm("ഈ വിദ്യാർത്ഥിയെ മാർക്ക് ലിസ്റ്റിൽ നിന്ന് ഒഴിവാക്കണോ?")) {
+            // ശരിയായ പേര് (Document ID) വെച്ച് തന്നെ ഫയർബേസിൽ നിന്ന് ഡിലീറ്റ് ചെയ്യുന്നു
+            db.collection("students").doc(id).delete().then(() => {
+                alert("വിദ്യാർത്ഥിയെ ഒഴിവാക്കി!");
+                loadStudents();
+            }).catch((err) => { alert("Error: " + err); });
+        }
+    }
+
+    function clearAllStudents() {
+        if(confirm("മാർക്ക് ലിസ്റ്റ് പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യണോ? പഴയ മാർക്കുകൾ എല്ലാം നഷ്ടപ്പെടും.")) {
+            db.collection("students").get().then((querySnapshot) => {
+                let batch = db.batch();
+                querySnapshot.forEach((doc) => { batch.delete(doc.ref); });
+                batch.commit().then(() => {
+                    alert("മാർക്ക് ലിസ്റ്റ് പൂർണ്ണമായി ക്ലീയർ ചെയ്തു!");
+                    loadStudents();
+                });
+            });
+        }
+    }
 </script>
 </body>
 </html>
