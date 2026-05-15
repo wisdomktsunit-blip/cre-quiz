@@ -8,30 +8,181 @@
     <meta property="og:title" content="CRE QUIZ - പരീക്ഷാ പോർട്ടൽ" />
     <meta property="og:description" content="നിങ്ങളുടെ പേരും രഹസ്യ പാസ്‌വേർഡും നൽകി പരീക്ഷ എഴുതുക, തത്സമയ ടോപ്പേഴ്സ് ലിസ്റ്റ് കാണുക." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://cre-quiz.vercel.app/logo.png" /> <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <meta property="og:image" content="https://i.postimg.cc/3wZ6PNgd/20260513-082839.jpg" /> 
+    <meta property="og:url" content="https://cre-quiz.vercel.app" />
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        h2, h3 { color: #1a365d; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #1a365d; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
-        button:hover { background-color: #2a4d7c; }
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2a4d7c;
+            --accent-color: #d4af37; /* Gold */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            padding: 20px; 
+            color: var(--text-color); 
+            margin: 0;
+        }
+
+        .container { 
+            max-width: 500px; 
+            margin: 30px auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+            text-align: center; 
+            border-top: 6px solid var(--primary-color);
+        }
+
+        .logo-img {
+            max-width: 130px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        h2 { 
+            color: var(--primary-color); 
+            margin-top: 5px;
+            font-size: 26px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        p { color: #555; font-size: 15px; line-height: 1.5; }
+
+        .form-group { margin-bottom: 20px; text-align: left; }
+        
+        label { 
+            font-weight: bold; 
+            display: block; 
+            margin-bottom: 8px; 
+            color: var(--primary-color);
+        }
+
+        input[type="text"], input[type="password"] { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(26, 54, 93, 0.2);
+        }
+
+        button { 
+            background-color: var(--primary-color); 
+            color: white; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            width: 100%; 
+            margin-top: 10px; 
+            box-shadow: 0 4px 6px rgba(26, 54, 93, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        button:hover { 
+            background-color: var(--secondary-color); 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(26, 54, 93, 0.3);
+        }
         
         /* Tab Styles for Toppers */
-        .tabs { display: flex; justify-content: space-around; margin-top: 20px; background: #eee; border-radius: 4px; padding: 5px; }
-        .tab-btn { background: none; color: #333; padding: 8px 12px; font-size: 14px; width: auto; margin-top: 0; font-weight: bold; }
-        .tab-btn.active { background-color: #1a365d; color: white; border-radius: 4px; }
+        .tabs { 
+            display: flex; 
+            justify-content: space-around; 
+            margin-top: 25px; 
+            background: #edf2f7; 
+            border-radius: 6px; 
+            padding: 6px; 
+        }
+
+        .tab-btn { 
+            background: none; 
+            color: #4a5568; 
+            padding: 10px 12px; 
+            font-size: 14px; 
+            width: auto; 
+            margin-top: 0; 
+            font-weight: bold; 
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active { 
+            background-color: var(--primary-color); 
+            color: white; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; text-align: left; }
-        th, td { border: 1px solid #ddd; padding: 10px; }
-        th { background-color: #1a365d; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .toppers-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        .info-text { font-size: 13px; color: #666; margin-top: 5px; }
+        .toppers-section { 
+            margin-top: 35px; 
+            border-top: 2px solid #edf2f7; 
+            padding-top: 25px; 
+        }
+
+        .toppers-section h3 {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            background: white; 
+            text-align: left; 
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        th, td { padding: 14px; }
+        
+        th { 
+            background-color: var(--primary-color); 
+            color: white; 
+            font-weight: bold;
+        }
+
+        tr { border-bottom: 1px solid #edf2f7; }
+        tr:last-child { border-bottom: none; }
+        tr:nth-child(even) { background-color: #f7fafc; }
+        
+        /* Highlighting for Top Ranks */
+        tr.rank-1 { background-color: #fffaf0; font-weight: bold; border-left: 4px solid var(--accent-color); }
+        tr.rank-2 { background-color: #fafdff; }
+        tr.rank-3 { background-color: #fafdff; }
+
+        .rank-badge {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .info-text { font-size: 13px; color: #718096; margin-top: 6px; line-height: 1.4; }
         .toppers-table-wrapper { display: none; }
         .toppers-table-wrapper.active { display: block; }
     </style>
@@ -39,6 +190,8 @@
 <body>
 
 <div class="container">
+    <img src="https://i.postimg.cc/fbbMBjfX/20260513-082839-removebg-preview.png" alt="Logo" class="logo-img">
+    
     <h2>CRE QUIZ</h2>
     <p>പരീക്ഷ എഴുതാനായി നിങ്ങളുടെ പേരും ഒരു രഹസ്യ പാസ്‌വേർഡും നൽകുക.</p>
     
@@ -64,21 +217,21 @@
 
         <div id="weeklySection" class="toppers-table-wrapper active">
             <table id="weeklyTable">
-                <thead><tr><th>Rank</th><th>പേര്</th><th>മാർക്ക്</th></tr></thead>
+                <thead><tr><th style="width: 20%;">Rank</th><th>പേര്</th><th style="width: 25%;">മാർക്ക്</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
 
         <div id="monthlySection" class="toppers-table-wrapper">
             <table id="monthlyTable">
-                <thead><tr><th>Rank</th><th>പേര്</th><th>മാർക്ക്</th></tr></thead>
+                <thead><tr><th style="width: 20%;">Rank</th><th>പേര്</th><th style="width: 25%;">മാർക്ക്</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
 
         <div id="alltimeSection" class="toppers-table-wrapper">
             <table id="alltimeTable">
-                <thead><tr><th>Rank</th><th>പേര്</th><th>മാർക്ക്</th></tr></thead>
+                <thead><tr><th style="width: 20%;">Rank</th><th>പേര്</th><th style="width: 25%;">മാർക്ക്</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -122,7 +275,6 @@
                     alert("ഈ പേര് ഓൾറെഡി നിലവിലുണ്ട്, പക്ഷേ പാസ്‌വേർഡ് തെറ്റാണ്!");
                 }
             } else {
-                // പുതിയ വിദ്യാർത്ഥി രജിസ്റ്റർ ചെയ്യുമ്പോൾ നിലവിലെ തീയതി (timestamp) കൂടി ഫയർബേസിലേക്ക് സേവ് ചെയ്യുന്നു
                 db.collection("students").doc(name).set({
                     name: name,
                     password: password,
@@ -136,30 +288,26 @@
         });
     }
 
-    // ടാബുകൾ മാറുന്നതിനുള്ള ഫങ്ക്ഷൻ
     function switchTab(type) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.toppers-table-wrapper').forEach(wrapper => wrapper.classList.remove('active'));
 
-        if(type === 'weekly') {
+        if (event && event.target) {
             event.target.classList.add('active');
+        }
+
+        if(type === 'weekly') {
             document.getElementById('weeklySection').classList.add('active');
         } else if(type === 'monthly') {
-            event.target.classList.add('active');
             document.getElementById('monthlySection').classList.add('active');
         } else {
-            event.target.classList.add('active');
             document.getElementById('alltimeSection').classList.add('active');
         }
     }
 
-    // എല്ലാ ലിസ്റ്റുകളും ഫയർബേസിൽ നിന്നും ലോഡ് ചെയ്യാൻ
     function loadToppersData() {
         const now = new Date();
-        
-        // ഈ ആഴ്ചയുടെ തുടക്കം കണക്കാക്കുന്നു (7 ദിവസങ്ങൾക്ക് മുൻപ്)
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        // ഈ മാസത്തിന്റെ തുടക്കം കണക്കാക്കുന്നു (30 ദിവസങ്ങൾക്ക് മുൻപ്)
         const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
         fetchAndRenderToppers(db.collection("students").where("timestamp", ">=", oneWeekAgo), "weeklyTable");
@@ -169,7 +317,7 @@
 
     function fetchAndRenderToppers(queryRef, tableId) {
         const tbody = document.querySelector(`#${tableId} tbody`);
-        tbody.innerHTML = "<tr><td colspan='3'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
 
         queryRef.get().then((querySnapshot) => {
             tbody.innerHTML = "";
@@ -179,27 +327,36 @@
                 if(data.score > 0) { list.push(data); }
             });
 
-            // മാർക്കിന്റെ അടിസ്ഥാനത്തിൽ ക്രമീകരിക്കുന്നു
             list.sort((a, b) => b.score - a.score);
-            // ആദ്യത്തെ 10 പേരെ മാത്രം കാണിക്കുന്നു
             let top10 = list.slice(0, 10); 
 
             if (top10.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='3'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#718096;'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
                 return;
             }
 
             let rank = 1;
             top10.forEach((data) => {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td><b>${rank}</b></td><td>${data.name}</td><td>${data.score}</td>`;
+                
+                let rankBadge = rank;
+                if(rank === 1) { tr.classList.add('rank-1'); rankBadge = "🥇"; }
+                else if(rank === 2) { tr.classList.add('rank-2'); rankBadge = "🥈"; }
+                else if(rank === 3) { tr.classList.add('rank-3'); rankBadge = "🥉"; }
+
+                tr.innerHTML = `
+                    <td class="rank-badge">${rankBadge}</td>
+                    <td>${data.name}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${data.score}</td>
+                `;
                 tbody.appendChild(tr);
                 rank++;
             });
         }).catch(() => {
-            tbody.innerHTML = "<tr><td colspan='3'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
         });
     }
 </script>
 </body>
 </html>
+
