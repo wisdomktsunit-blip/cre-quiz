@@ -3,78 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>CRE QUIZ - പരീക്ഷയിൽ പങ്കെടുക്കുക</title>
-    <meta property="og:title" content="CRE QUIZ">
-    <meta property="og:description" content="നിങ്ങളുടെ പേരും പാസ്‌വേഡും നൽകി പരീക്ഷയിൽ പങ്കെടുക്കുക.">
-    <meta property="og:image" content="https://i.postimg.cc/fbbMBjfX/20260513-082839-removebg-preview.png">
-    <meta property="og:url" content="https://cre-quiz.vercel.app"> 
-    <meta property="og:type" content="website">
+    <title>CRE QUIZ - HOME</title>
 
+    <meta property="og:title" content="CRE QUIZ - പരീക്ഷാ പോർട്ടൽ" />
+    <meta property="og:description" content="നിങ്ങളുടെ പേരും രഹസ്യ പാസ്‌വേർഡും നൽകി പരീക്ഷ എഴുതുക, തത്സമയ ടോപ്പേഴ്സ് ലിസ്റ്റ് കാണുക." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://cre-quiz.vercel.app/logo.png" /> <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
     <style>
-        body { font-family: sans-serif; background: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        .logo { width: 130px; margin-bottom: 15px; }
-        h2 { color: #1c3d8e; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-start { width: 100%; padding: 12px; background: #1c3d8e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        h2, h3 { color: #1a365d; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #1a365d; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
+        button:hover { background-color: #2a4d7c; }
+        
+        /* Tab Styles for Toppers */
+        .tabs { display: flex; justify-content: space-around; margin-top: 20px; background: #eee; border-radius: 4px; padding: 5px; }
+        .tab-btn { background: none; color: #333; padding: 8px 12px; font-size: 14px; width: auto; margin-top: 0; font-weight: bold; }
+        .tab-btn.active { background-color: #1a365d; color: white; border-radius: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background-color: #1a365d; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .toppers-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        .info-text { font-size: 13px; color: #666; margin-top: 5px; }
+        .toppers-table-wrapper { display: none; }
+        .toppers-table-wrapper.active { display: block; }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <img src="https://i.postimg.cc/fbbMBjfX/20260513-082839-removebg-preview.png" alt="Logo" class="logo">
+<div class="container">
     <h2>CRE QUIZ</h2>
-    <input type="text" id="nameInput" placeholder="നിങ്ങളുടെ പേര്">
-    <input type="password" id="passInput" placeholder="നിങ്ങളുടെ പാസ്‌വേഡ്">
-    <button class="btn-start" onclick="startExam()">START EXAM</button>
+    <p>പരീക്ഷ എഴുതാനായി നിങ്ങളുടെ പേരും ഒരു രഹസ്യ പാസ്‌വേർഡും നൽകുക.</p>
+    
+    <div class="form-group">
+        <label>നിങ്ങളുടെ പേര്:</label>
+        <input type="text" id="studentName" placeholder="പേര് ടൈപ്പ് ചെയ്യുക">
+    </div>
+    <div class="form-group">
+        <label>നിങ്ങളുടെ പാസ്‌വേർഡ്:</label>
+        <input type="password" id="studentPassword" placeholder="പാസ്‌വേർഡ് ടൈപ്പ് ചെയ്യുക">
+        <p class="info-text">* നിങ്ങൾ ആദ്യമായി ഉപയോഗിക്കുന്ന പാസ്‌വേർഡ് ആയിരിക്കണം ഇത്. അടുത്ത തവണ ലോഗിൻ ചെയ്യാനും ഇതേ പാസ്‌വേർഡ് തന്നെ വേണം.</p>
+    </div>
+    <button onclick="startQuiz()">START EXAM</button>
+
+    <div class="toppers-section">
+        <h3>🏆 TOPPERS LIST 🏆</h3>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('weekly')">ഈ ആഴ്ചയിലെ</button>
+            <button class="tab-btn" onclick="switchTab('monthly')">ഈ മാസത്തിലെ</button>
+            <button class="tab-btn" onclick="switchTab('alltime')">എക്കാലത്തെയും</button>
+        </div>
+
+        <div id="weeklySection" class="toppers-table-wrapper active">
+            <table id="weeklyTable">
+                <thead><tr><th>Rank</th><th>പേര്</th><th>മാർക്ക്</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="monthlySection" class="toppers-table-wrapper">
+            <table id="monthlyTable">
+                <thead><tr><th>Rank</th><th>പേര്</th><th>മാർക്ക്</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="alltimeSection" class="toppers-table-wrapper">
+            <table id="alltimeTable">
+                <thead><tr><th>Rank</th><th>പേര്</th><th>മാർക്ക്</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyDlfQj9aXExdD9on2Fl9yyq789HF0p3_dU",
+        apiKey: "AIzaSyDlTqjj9eXFxdO9on2Ff19yyq7",
         authDomain: "crequizapp.firebaseapp.com",
         projectId: "crequizapp",
-        storageBucket: "crequizapp.firebasestorage.app",
+        storageBucket: "crequizapp.appspot.com",
         messagingSenderId: "273500358959",
-        appId: "1:273500358959:web:eb59a5b743c92d16d8b9da"
+        appId: "1:273500358959:web:eb59a5b743c92c16d8b9cb"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
 
-    async function startExam() {
-        const name = document.getElementById('nameInput').value.trim();
-        const pass = document.getElementById('passInput').value.trim();
-        
-        if(!name || !pass) { alert("പേരും പാസ്‌വേഡും നൽകുക!"); return; }
+    window.onload = function() {
+        loadToppersData();
+    };
 
-        const studentRef = db.collection("students").doc(name);
-        const doc = await studentRef.get();
+    function startQuiz() {
+        const name = document.getElementById('studentName').value.trim();
+        const password = document.getElementById('studentPassword').value.trim();
 
-        if(doc.exists) {
-            const data = doc.data();
-            if(data.password === pass) {
-                if(data.hasAttended) {
-                    alert("നിങ്ങൾ ഈ പരീക്ഷ എഴുതിക്കഴിഞ്ഞു!");
-                } else {
-                    localStorage.setItem("studentName", name);
+        if (!name || !password) {
+            alert("ദയവായി പേരും പാസ്‌വേർഡും കൃത്യമായി നൽകുക!");
+            return;
+        }
+
+        db.collection("students").doc(name).get().then((doc) => {
+            if (doc.exists) {
+                if (doc.data().password === password) {
+                    localStorage.setItem("currentStudentName", name);
                     window.location.href = "quiz.html";
+                } else {
+                    alert("ഈ പേര് ഓൾറെഡി നിലവിലുണ്ട്, പക്ഷേ പാസ്‌വേർഡ് തെറ്റാണ്!");
                 }
             } else {
-                alert("ഈ പേരിൽ മറ്റൊരു പാസ്‌വേഡ് നിലവിലുണ്ട്. നിങ്ങളുടെ ശരിയായ പാസ്‌വേഡ് നൽകുക.");
+                // പുതിയ വിദ്യാർത്ഥി രജിസ്റ്റർ ചെയ്യുമ്പോൾ നിലവിലെ തീയതി (timestamp) കൂടി ഫയർബേസിലേക്ക് സേവ് ചെയ്യുന്നു
+                db.collection("students").doc(name).set({
+                    name: name,
+                    password: password,
+                    score: 0,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                }).then(() => {
+                    localStorage.setItem("currentStudentName", name);
+                    window.location.href = "quiz.html";
+                });
             }
+        });
+    }
+
+    // ടാബുകൾ മാറുന്നതിനുള്ള ഫങ്ക്ഷൻ
+    function switchTab(type) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.toppers-table-wrapper').forEach(wrapper => wrapper.classList.remove('active'));
+
+        if(type === 'weekly') {
+            event.target.classList.add('active');
+            document.getElementById('weeklySection').classList.add('active');
+        } else if(type === 'monthly') {
+            event.target.classList.add('active');
+            document.getElementById('monthlySection').classList.add('active');
         } else {
-            await studentRef.set({
-                name: name,
-                password: pass,
-                hasAttended: false,
-                score: 0
-            });
-            localStorage.setItem("studentName", name);
-            window.location.href = "quiz.html";
+            event.target.classList.add('active');
+            document.getElementById('alltimeSection').classList.add('active');
         }
+    }
+
+    // എല്ലാ ലിസ്റ്റുകളും ഫയർബേസിൽ നിന്നും ലോഡ് ചെയ്യാൻ
+    function loadToppersData() {
+        const now = new Date();
+        
+        // ഈ ആഴ്ചയുടെ തുടക്കം കണക്കാക്കുന്നു (7 ദിവസങ്ങൾക്ക് മുൻപ്)
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        // ഈ മാസത്തിന്റെ തുടക്കം കണക്കാക്കുന്നു (30 ദിവസങ്ങൾക്ക് മുൻപ്)
+        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        fetchAndRenderToppers(db.collection("students").where("timestamp", ">=", oneWeekAgo), "weeklyTable");
+        fetchAndRenderToppers(db.collection("students").where("timestamp", ">=", oneMonthAgo), "monthlyTable");
+        fetchAndRenderToppers(db.collection("students"), "alltimeTable");
+    }
+
+    function fetchAndRenderToppers(queryRef, tableId) {
+        const tbody = document.querySelector(`#${tableId} tbody`);
+        tbody.innerHTML = "<tr><td colspan='3'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
+
+        queryRef.get().then((querySnapshot) => {
+            tbody.innerHTML = "";
+            let list = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if(data.score > 0) { list.push(data); }
+            });
+
+            // മാർക്കിന്റെ അടിസ്ഥാനത്തിൽ ക്രമീകരിക്കുന്നു
+            list.sort((a, b) => b.score - a.score);
+            // ആദ്യത്തെ 10 പേരെ മാത്രം കാണിക്കുന്നു
+            let top10 = list.slice(0, 10); 
+
+            if (top10.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='3'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
+                return;
+            }
+
+            let rank = 1;
+            top10.forEach((data) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td><b>${rank}</b></td><td>${data.name}</td><td>${data.score}</td>`;
+                tbody.appendChild(tr);
+                rank++;
+            });
+        }).catch(() => {
+            tbody.innerHTML = "<tr><td colspan='3'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
+        });
     }
 </script>
 </body>
