@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRE Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        h2 { color: #1c3d8e; text-align: center; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
+        button { width: 100%; padding: 12px; background: #4caf50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .student-list { font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>ചോദ്യങ്ങൾ ചേർക്കുക</h2>
+    <textarea id="q" placeholder="ചോദ്യം"></textarea>
+    <input type="text" id="o1" placeholder="ഓപ്ഷൻ 1">
+    <input type="text" id="o2" placeholder="ഓപ്ഷൻ 2">
+    <input type="text" id="o3" placeholder="ഓപ്ഷൻ 3">
+    <input type="text" id="o4" placeholder="ഓപ്ഷൻ 4">
+    <input type="number" id="c" placeholder="ശരിയായ ഓപ്ഷൻ നമ്പർ (0-3)">
+    <button onclick="addQ()">ADD QUESTION</button>
+</div>
+
+<div class="card">
+    <h2>വിദ്യാർത്ഥികളുടെ മാർക്ക്</h2>
+    <div id="results" class="student-list">ലോഡ് ചെയ്യുന്നു...</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDlfQj9aXExdD9on2Fl9yyq789HF0p3_dU",
+        authDomain: "crequizapp.firebaseapp.com",
+        projectId: "crequizapp",
+        storageBucket: "crequizapp.firebasestorage.app",
+        messagingSenderId: "273500358959",
+        appId: "1:273500358959:web:eb59a5b743c92d16d8b9da"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function addQ() {
+        const text = document.getElementById('q').value;
+        const opts = [document.getElementById('o1').value, document.getElementById('o2').value, document.getElementById('o3').value, document.getElementById('o4').value];
+        const correct = parseInt(document.getElementById('c').value);
+
+        db.collection("quiz_questions").add({ question: text, options: opts, correctIndex: correct })
+        .then(() => alert("ചോദ്യം ചേർത്തു!"));
+    }
+
+    db.collection("students").orderBy("score", "desc").onSnapshot(snap => {
+        let html = "";
+        snap.forEach(doc => {
+            const d = doc.data();
+            html += `<p><b>${d.name}:</b> ${d.score}/10</p>`;
+        });
+        document.getElementById('results').innerHTML = html;
+    });
+</script>
+</body>
+</html>
