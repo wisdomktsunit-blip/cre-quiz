@@ -95,7 +95,6 @@
             text-align: center; 
         }
 
-        /* Result Sheet Styling */
         .result-sheet {
             background: #fdfdfd;
             border: 2px dashed var(--secondary-color);
@@ -169,7 +168,6 @@
     const db = firebase.firestore();
     let currentQ = 0, score = 0, timeLeft = 59, timerInterval, questions = [];
     
-    // index.html-ൽ സെറ്റ് ചെയ്ത പേര് തന്നെ ഇവിടെ ലഭിക്കാൻ ഭേദഗതി വരുത്തി
     const studentName = localStorage.getItem("currentStudentName") || "Guest";
     document.getElementById('display-name').innerText = studentName;
 
@@ -210,11 +208,12 @@
         document.getElementById('result-area').style.display = 'block';
         document.getElementById('score').innerText = score;
         
-        // ഫയർബേസിൽ മാർക്ക് കൃത്യമായി അപ്ഡേറ്റ് ചെയ്യുന്നു
-        db.collection("students").doc(studentName).update({
+        // ഇവിടെ ടൈംസ്റ്റാമ്പ് (timestamp) അപ്ഡേറ്റ് ലോജിക് കൃത്യമാക്കിയിട്ടുണ്ട്
+        db.collection("students").doc(studentName).set({
+            name: studentName,
             score: score,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true });
     }
 </script>
 </body>
