@@ -16,11 +16,11 @@
     
     <style>
         :root {
-            --primary-color: #1a365d;
-            --secondary-color: #2a4d7c;
-            --accent-color: #d4af37; /* Gold */
-            --bg-color: #f4f7f6;
-            --text-color: #333;
+            --primary-color: #419f8a;     /* Dark Teal */
+            --secondary-color: #5cbda3;   /* Teal */
+            --accent-color: #c6eec9;      /* Light Green */
+            --bg-color: #f1f8f6;          /* Clean soft background */
+            --text-color: #2c3e50;
         }
 
         body { 
@@ -37,7 +37,7 @@
             background: white; 
             padding: 30px; 
             border-radius: 12px; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
             text-align: center; 
             border-top: 6px solid var(--primary-color);
         }
@@ -80,7 +80,7 @@
         input[type="text"]:focus, input[type="password"]:focus {
             border-color: var(--primary-color);
             outline: none;
-            box-shadow: 0 0 5px rgba(26, 54, 93, 0.2);
+            box-shadow: 0 0 5px rgba(65, 159, 138, 0.2);
         }
 
         button { 
@@ -94,14 +94,14 @@
             font-weight: bold;
             width: 100%; 
             margin-top: 10px; 
-            box-shadow: 0 4px 6px rgba(26, 54, 93, 0.2);
+            box-shadow: 0 4px 6px rgba(65, 159, 138, 0.2);
             transition: all 0.3s ease;
         }
 
         button:hover { 
             background-color: var(--secondary-color); 
             transform: translateY(-1px);
-            box-shadow: 0 6px 8px rgba(26, 54, 93, 0.3);
+            box-shadow: 0 6px 8px rgba(65, 159, 138, 0.25);
         }
         
         /* Tab Styles for Toppers */
@@ -109,7 +109,7 @@
             display: flex; 
             justify-content: space-around; 
             margin-top: 25px; 
-            background: #edf2f7; 
+            background: #eef7f4; 
             border-radius: 6px; 
             padding: 6px; 
         }
@@ -117,9 +117,9 @@
         .tab-btn { 
             background: none; 
             color: #4a5568; 
-            padding: 10px 12px; 
+            padding: 10px 20px; 
             font-size: 14px; 
-            width: auto; 
+            width: 45%; 
             margin-top: 0; 
             font-weight: bold; 
             border: none;
@@ -155,7 +155,7 @@
             text-align: left; 
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             border: 1px solid #e2e8f0;
         }
 
@@ -169,12 +169,12 @@
 
         tr { border-bottom: 1px solid #edf2f7; }
         tr:last-child { border-bottom: none; }
-        tr:nth-child(even) { background-color: #f7fafc; }
+        tr:nth-child(even) { background-color: #fbfdfc; }
         
         /* Highlighting for Top Ranks */
-        tr.rank-1 { background-color: #fffaf0; font-weight: bold; border-left: 4px solid var(--accent-color); }
-        tr.rank-2 { background-color: #fafdff; }
-        tr.rank-3 { background-color: #fafdff; }
+        tr.rank-1 { background-color: #f4fbf6; font-weight: bold; border-left: 4px solid var(--secondary-color); }
+        tr.rank-2 { background-color: #fbfdfc; }
+        tr.rank-3 { background-color: #fbfdfc; }
 
         .rank-badge {
             font-size: 18px;
@@ -212,7 +212,6 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('weekly')">ഈ ആഴ്ചയിലെ</button>
             <button class="tab-btn" onclick="switchTab('monthly')">ഈ മാസത്തിലെ</button>
-            <button class="tab-btn" onclick="switchTab('alltime')">എക്കാലത്തെയും</button>
         </div>
 
         <div id="weeklySection" class="toppers-table-wrapper active">
@@ -224,13 +223,6 @@
 
         <div id="monthlySection" class="toppers-table-wrapper">
             <table id="monthlyTable">
-                <thead><tr><th style="width: 20%;">Rank</th><th>പേര്</th><th style="width: 25%;">മാർക്ക്</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-
-        <div id="alltimeSection" class="toppers-table-wrapper">
-            <table id="alltimeTable">
                 <thead><tr><th style="width: 20%;">Rank</th><th>പേര്</th><th style="width: 25%;">മാർക്ക്</th></tr></thead>
                 <tbody></tbody>
             </table>
@@ -298,10 +290,8 @@
 
         if(type === 'weekly') {
             document.getElementById('weeklySection').classList.add('active');
-        } else if(type === 'monthly') {
-            document.getElementById('monthlySection').classList.add('active');
         } else {
-            document.getElementById('alltimeSection').classList.add('active');
+            document.getElementById('monthlySection').classList.add('active');
         }
     }
 
@@ -310,21 +300,32 @@
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-        fetchAndRenderToppers(db.collection("students").where("timestamp", ">=", oneWeekAgo), "weeklyTable");
-        fetchAndRenderToppers(db.collection("students").where("timestamp", ">=", oneMonthAgo), "monthlyTable");
-        fetchAndRenderToppers(db.collection("students"), "alltimeTable");
+        // 'ലിസ്റ്റ് ലഭ്യമല്ല' എന്ന പ്രശ്നം ഒഴിവാക്കാൻ ഫിൽറ്ററിങ് കൂടുതൽ കൃത്യമാക്കി
+        fetchAndRenderToppers(db.collection("students"), "weeklyTable", oneWeekAgo);
+        fetchAndRenderToppers(db.collection("students"), "monthlyTable", oneMonthAgo);
     }
 
-    function fetchAndRenderToppers(queryRef, tableId) {
+    function fetchAndRenderToppers(queryRef, tableId, timeLimit) {
         const tbody = document.querySelector(`#${tableId} tbody`);
         tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
 
         queryRef.get().then((querySnapshot) => {
             tbody.innerHTML = "";
             let list = [];
+            
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                if(data.score > 0) { list.push(data); }
+                if(data.score > 0) { 
+                    if (timeLimit) {
+                        // ടൈംസ്റ്റാമ്പ് ഉള്ളവ മാത്രം സമയം നോക്കി ഫിൽറ്റർ ചെയ്യുന്നു
+                        if (data.timestamp) {
+                            const docDate = data.timestamp.toDate();
+                            if (docDate >= timeLimit) { list.push(data); }
+                        }
+                    } else {
+                        list.push(data);
+                    }
+                }
             });
 
             list.sort((a, b) => b.score - a.score);
@@ -358,5 +359,5 @@
     }
 </script>
 </body>
-</html>
-
+    </html>
+    
