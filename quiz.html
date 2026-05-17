@@ -217,6 +217,7 @@
     const db = firebase.firestore();
     let currentQ = 0, score = 0, timeLeft = 59, timerInterval, questions = [];
     let userAnswers = []; // കുട്ടികൾ തിരഞ്ഞെടുത്ത ഉത്തരങ്ങൾ സൂക്ഷിക്കാൻ
+    let totalTimeLeft = 0; // ആകെ ബാക്കിയുള്ള സമയം കണക്കാക്കാനുള്ള പുതിയ വേരിയബിൾ
     
     const studentName = localStorage.getItem("currentStudentName") || "Guest";
     document.getElementById('display-name').innerText = studentName;
@@ -261,6 +262,11 @@
             score++;
         }
 
+        // സമയം തീരുന്നതിന് മുൻപ് ഉത്തരം നൽകിയാൽ ബാക്കി സമയം ടോട്ടലിലേക്ക് കൂട്ടുന്നു
+        if(selectedIdx !== -1) {
+            totalTimeLeft += timeLeft;
+        }
+
         // കുട്ടിയുടെ ഉത്തരം ട്രാക്ക് ലിസ്റ്റിലേക്ക് മാറ്റുന്നു
         userAnswers.push({
             question: currentQuestionData.question,
@@ -297,9 +303,11 @@
             reviewContainer.appendChild(itemDiv);
         });
         
+        // മാർക്കിനൊപ്പം ആകെ ബാക്കിയുള്ള സമയവും (totalTimeLeft) ഡാറ്റാബേസിലേക്ക് സേവ് ചെയ്യുന്നു
         db.collection("students").doc(studentName).set({
             name: studentName,
             score: score,
+            totalTimeLeft: totalTimeLeft,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
     }
