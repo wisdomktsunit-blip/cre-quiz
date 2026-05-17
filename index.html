@@ -104,7 +104,6 @@
             box-shadow: 0 6px 8px rgba(65, 159, 138, 0.25);
         }
         
-        /* Tab Styles for Toppers */
         .tabs { 
             display: flex; 
             justify-content: space-around; 
@@ -171,7 +170,6 @@
         tr:last-child { border-bottom: none; }
         tr:nth-child(even) { background-color: #fbfdfc; }
         
-        /* Highlighting for Top Ranks */
         tr.rank-1 { background-color: #f4fbf6; font-weight: bold; border-left: 4px solid var(--secondary-color); }
         tr.rank-2 { background-color: #fbfdfc; }
         tr.rank-3 { background-color: #fbfdfc; }
@@ -258,25 +256,35 @@
             return;
         }
 
-        db.collection("students").doc(name).get().then((doc) => {
-            if (doc.exists) {
-                if (doc.data().password === password) {
-                    localStorage.setItem("currentStudentName", name);
-                    window.location.href = "quiz.html";
-                } else {
-                    alert("ഈ പേര് ഓൾറെഡി നിലവിലുണ്ട്, പക്ഷേ പാസ്‌വേർഡ് തെറ്റാണ്!");
-                }
-            } else {
-                db.collection("students").doc(name).set({
-                    name: name,
-                    password: password,
-                    score: 0,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                }).then(() => {
-                    localStorage.setItem("currentStudentName", name);
-                    window.location.href = "quiz.html";
-                });
+        // പരീക്ഷ അഡ്മിൻ ഹോൾഡ് ചെയ്തിട്ടുണ്ടോ എന്ന് ആദ്യം പരിശോധിക്കുന്നു
+        db.collection("settings").doc("exam_control").get().then((statusDoc) => {
+            if (statusDoc.exists && statusDoc.data().active === false) {
+                alert("🛑 പരീക്ഷ താൽക്കാലികമായി നിർത്തിവെച്ചിരിക്കുന്നു! അഡ്മിൻ അനുമതി നൽകിയ ശേഷം വീണ്ടും ശ്രമിക്കുക.");
+                return;
             }
+
+            // പരീക്ഷ ആക്ടീവ് ആണെങ്കിൽ മാത്രം ലോഗിൻ തുടരുന്നു
+            db.collection("students").doc(name).get().then((doc) => {
+                if (doc.exists) {
+                    if (doc.data().password === password) {
+                        localStorage.setItem("currentStudentName", name);
+                        window.location.href = "quiz.html";
+                    } else {
+                        alert("ഈ പേര് ഓൾറെഡി നിലവിലുണ്ട്, പക്ഷേ പാസ്‌വേർഡ് തെറ്റാണ്!");
+                    }
+                } else {
+                    db.collection("students").doc(name).set({
+                        name: name,
+                        password: password,
+                        score: 0,
+                        totalTimeLeft: 0,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                    }).then(() => {
+                        localStorage.setItem("currentStudentName", name);
+                        window.location.href = "quiz.html";
+                    });
+                }
+            });
         });
     }
 
@@ -300,7 +308,6 @@
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-        // 'ലിസ്റ്റ് ലഭ്യമല്ല' എന്ന പ്രശ്നം ഒഴിവാക്കാൻ ഫിൽറ്ററിങ് കൂടുതൽ കൃത്യമാക്കി
         fetchAndRenderToppers(db.collection("students"), "weeklyTable", oneWeekAgo);
         fetchAndRenderToppers(db.collection("students"), "monthlyTable", oneMonthAgo);
     }
@@ -317,7 +324,6 @@
                 const data = doc.data();
                 if(data.score > 0) { 
                     if (timeLimit) {
-                        // ടൈംസ്റ്റാമ്പ് ഉള്ളവ മാത്രം സമയം നോക്കി ഫിൽറ്റർ ചെയ്യുന്നു
                         if (data.timestamp) {
                             const docDate = data.timestamp.toDate();
                             if (docDate >= timeLimit) { list.push(data); }
@@ -328,7 +334,18 @@
                 }
             });
 
-            list.sort((a, b) => b.score - a.score);
+            // സമയം അടിസ്ഥാനമാക്കിയുള്ള പുതിയ സോർട്ടിങ് ഓർഡർ ലോജിക്
+            list.sort((a, b) => {
+                // 1. ആദ്യം മാർക്ക് കൂടുതൽ ഉള്ളവർക്ക് മുൻഗണന നൽകുന്നു
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                // 2. മാർക്ക് തുല്യമായാൽ, കൂടുതൽ സമയം ബാക്കിവെച്ചവർക്ക് (കുറഞ്ഞ സമയം എടുത്തവർക്ക്) മുൻഗണന
+                let timeA = a.totalTimeLeft || 0;
+                let timeB = b.totalTimeLeft || 0;
+                return timeB - timeA; 
+            });
+
             let top10 = list.slice(0, 10); 
 
             if (top10.length === 0) {
