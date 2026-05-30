@@ -303,13 +303,31 @@
             reviewContainer.appendChild(itemDiv);
         });
         
-        // മാർക്കിനൊപ്പം ആകെ ബാക്കിയുള്ള സമയവും (totalTimeLeft) ഡാറ്റാബേസിലേക്ക് സേവ് ചെയ്യുന്നു
-        db.collection("students").doc(studentName).set({
+        // ഡാറ്റ ഒന്നിച്ച് അപ്ഡേറ്റ് ചെയ്യാൻ ഒരു ഫയർബേസ് ബാച്ച് ക്രിയേറ്റ് ചെയ്യുന്നു
+        let batch = db.batch();
+        const studentData = {
             name: studentName,
             score: score,
             totalTimeLeft: totalTimeLeft,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        };
+
+        // 1. പ്രധാന കളക്ഷനിലേക്ക് മാറ്റുന്നു
+        const mainRef = db.collection("students").doc(studentName);
+        batch.set(mainRef, studentData, { merge: true });
+
+        // 2. Weekly Toppers കളക്ഷനിലേക്ക് മാറ്റുന്നു
+        const weeklyRef = db.collection("students_weekly").doc(studentName);
+        batch.set(weeklyRef, studentData, { merge: true });
+
+        // 3. Monthly Toppers കളക്ഷനിലേക്ക് മാറ്റുന്നു
+        const monthlyRef = db.collection("students_monthly").doc(studentName);
+        batch.set(monthlyRef, studentData, { merge: true });
+
+        // ബാച്ച് ഒന്നിച്ച് എക്സിക്യൂട്ട് ചെയ്യുന്നു
+        batch.commit().catch((error) => {
+            console.error("ഡാറ്റാബേസ് അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ പരാജയം: ", error);
+        });
     }
 </script>
 </body>
