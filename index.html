@@ -183,6 +183,29 @@
         .info-text { font-size: 13px; color: #718096; margin-top: 6px; line-height: 1.4; }
         .toppers-table-wrapper { display: none; }
         .toppers-table-wrapper.active { display: block; }
+
+        /* Help Desk Button Style */
+        .help-desk-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background-color: #25D366; /* WhatsApp Green */
+            color: white;
+            padding: 12px 22px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            transition: transform 0.2s ease;
+        }
+        .help-desk-btn:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -228,6 +251,10 @@
     </div>
 </div>
 
+<a href="#" id="whatsAppHelpLink" target="_blank" class="help-desk-btn">
+    💬 Help Desk
+</a>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDlTqjj9eXFxdO9on2Ff19yyq7",
@@ -245,6 +272,7 @@
 
     window.onload = function() {
         loadToppersData();
+        loadHelpDeskLink(); // ഹെൽപ്പ് ഡെസ്ക് ലിങ്ക് ലോഡ് ചെയ്യുന്നു
     };
 
     function startQuiz() {
@@ -256,14 +284,12 @@
             return;
         }
 
-        // പരീക്ഷ അഡ്മിൻ ഹോൾഡ് ചെയ്തിട്ടുണ്ടോ എന്ന് ആദ്യം പരിശോധിക്കുന്നു
         db.collection("settings").doc("exam_control").get().then((statusDoc) => {
             if (statusDoc.exists && statusDoc.data().active === false) {
                 alert("🛑 പരീക്ഷ താൽക്കാലികമായി നിർത്തിവെച്ചിരിക്കുന്നു! അഡ്മിൻ അനുമതി നൽകിയ ശേഷം വീണ്ടും ശ്രമിക്കുക.");
                 return;
             }
 
-            // പരീക്ഷ ആക്ടീവ് ആണെങ്കിൽ മാത്രം ലോഗിൻ തുടരുന്നു
             db.collection("students").doc(name).get().then((doc) => {
                 if (doc.exists) {
                     if (doc.data().password === password) {
@@ -304,43 +330,30 @@
     }
 
     function loadToppersData() {
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-        fetchAndRenderToppers(db.collection("students"), "weeklyTable", oneWeekAgo);
-        fetchAndRenderToppers(db.collection("students"), "monthlyTable", oneMonthAgo);
+        // സുരക്ഷിതത്വത്തിനായി ആഴ്ചയിലെ ലിസ്റ്റും മാസത്തിലെ ലിസ്റ്റും രണ്ട് വ്യത്യസ്ത കളക്ഷനിൽ നിന്ന് നേരിട്ട് എടുക്കുന്നു
+        fetchAndRenderToppers("students_weekly", "weeklyTable");
+        fetchAndRenderToppers("students_monthly", "monthlyTable");
     }
 
-    function fetchAndRenderToppers(queryRef, tableId, timeLimit) {
+    function fetchAndRenderToppers(collectionName, tableId) {
         const tbody = document.querySelector(`#${tableId} tbody`);
         tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
 
-        queryRef.get().then((querySnapshot) => {
+        db.collection(collectionName).get().then((querySnapshot) => {
             tbody.innerHTML = "";
             let list = [];
             
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 if(data.score > 0) { 
-                    if (timeLimit) {
-                        if (data.timestamp) {
-                            const docDate = data.timestamp.toDate();
-                            if (docDate >= timeLimit) { list.push(data); }
-                        }
-                    } else {
-                        list.push(data);
-                    }
+                    list.push(data);
                 }
             });
 
-            // സമയം അടിസ്ഥാനമാക്കിയുള്ള പുതിയ സോർട്ടിങ് ഓർഡർ ലോജിക്
             list.sort((a, b) => {
-                // 1. ആദ്യം മാർക്ക് കൂടുതൽ ഉള്ളവർക്ക് മുൻഗണന നൽകുന്നു
                 if (b.score !== a.score) {
                     return b.score - a.score;
                 }
-                // 2. മാർക്ക് തുല്യമായാൽ, കൂടുതൽ സമയം ബാക്കിവെച്ചവർക്ക് (കുറഞ്ഞ സമയം എടുത്തവർക്ക്) മുൻഗണന
                 let timeA = a.totalTimeLeft || 0;
                 let timeB = b.totalTimeLeft || 0;
                 return timeB - timeA; 
@@ -374,7 +387,19 @@
             tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>ലിസ്റ്റ് ലഭ്യമല്ല.</td></tr>";
         });
     }
+
+    // അഡ്മിൻ പാനലിൽ നൽകിയ നമ്പറിലേക്ക് ഹെൽപ്പ് ഡെസ്ക് ലിങ്ക് കണക്റ്റ് ചെയ്യാനുള്ള ഫങ്ക്ഷൻ
+    function loadHelpDeskLink() {
+        db.collection("settings").doc("help_desk").get().then((doc) => {
+            let phone = "919000000000"; // ഡിഫോൾട്ട് നമ്പർ
+            let message = "ഹലോ, CRE ക്വിസ്സുമായി ബന്ധപ്പെട്ട് ഒരു സഹായം വേണമായിരുന്നു."; // ഡിഫോൾട്ട് മെസ്സേജ്
+            if(doc.exists) {
+                phone = doc.data().phone || phone;
+                message = encodeURIComponent(doc.data().message || message);
+            }
+            document.getElementById("whatsAppHelpLink").href = `https://wa.me/${phone}?text=${message}`;
+        });
+    }
 </script>
 </body>
-    </html>
-    
+</html>
