@@ -222,8 +222,13 @@
     const studentName = localStorage.getItem("currentStudentName") || "Guest";
     document.getElementById('display-name').innerText = studentName;
 
-    db.collection("quiz_questions").limit(10).get().then((snap) => {
+    // മാറ്റം വരുത്തിയ ഭാഗം: ഡാറ്റാബേസിൽ നിന്നും ഏറ്റവും പുതിയ 10 ചോദ്യങ്ങൾ മാത്രം ക്രമത്തിൽ എടുക്കുന്നു
+    db.collection("quiz_questions").orderBy("timestamp", "desc").limit(10).get().then((snap) => {
         snap.forEach((doc) => questions.push({ id: doc.id, ...doc.data() }));
+        
+        // ചോദ്യങ്ങൾ കുട്ടികൾക്ക് കാണുമ്പോൾ എപ്പോഴും ചേർത്ത ക്രമത്തിൽ (പഴയത് മുതൽ പുതിയത് എന്ന രീതിയിൽ) വരാൻ റിവേഴ്സ് ചെയ്യുന്നു
+        questions.reverse();
+
         if(questions.length > 0) { showQuestion(); startTimer(); }
         else document.getElementById('q-text').innerText = "ചോദ്യങ്ങൾ ലഭ്യമല്ല.";
     });
@@ -248,7 +253,7 @@
         timerInterval = setInterval(() => {
             timeLeft--; document.getElementById('timer').innerText = timeLeft;
             if (timeLeft <= 0) {
-                handleAnswer(-1); // സമയം കഴിഞ്ഞാൽ -1 (ഉത്തരം നൽകിയില്ല) എന്ന് കണക്കാക്കും
+                handleAnswer(-1); // സമയം കഴിഞ്ഞാൽ -1 എന്ന് കണക്കാക്കും
             }
         }, 1000);
     }
@@ -257,17 +262,14 @@
         const currentQuestionData = questions[currentQ];
         const correctIdx = currentQuestionData.correctIndex;
         
-        // ശരിയാണോ എന്ന് നോക്കുന്നു
         if(selectedIdx === correctIdx) {
             score++;
         }
 
-        // സമയം തീരുന്നതിന് മുൻപ് ഉത്തരം നൽകിയാൽ ബാക്കി സമയം ടോട്ടലിലേക്ക് കൂട്ടുന്നു
         if(selectedIdx !== -1) {
             totalTimeLeft += timeLeft;
         }
 
-        // കുട്ടിയുടെ ഉത്തരം ട്രാക്ക് ലിസ്റ്റിലേക്ക് മാറ്റുന്നു
         userAnswers.push({
             question: currentQuestionData.question,
             correctAnswer: currentQuestionData.options[correctIdx],
@@ -285,7 +287,6 @@
         document.getElementById('result-area').style.display = 'block';
         document.getElementById('score').innerText = score;
         
-        // ശരി തെറ്റുകളുടെ ലിസ്റ്റ് റിസൾട്ട് പേജിലേക്ക് ചേർക്കുന്നു
         const reviewContainer = document.getElementById('review-container');
         reviewContainer.innerHTML = '';
         
@@ -303,7 +304,6 @@
             reviewContainer.appendChild(itemDiv);
         });
         
-        // ഡാറ്റ ഒന്നിച്ച് അപ്ഡേറ്റ് ചെയ്യാൻ ഒരു ഫയർബേസ് ബാച്ച് ക്രിയേറ്റ് ചെയ്യുന്നു
         let batch = db.batch();
         const studentData = {
             name: studentName,
@@ -312,19 +312,15 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // 1. പ്രധാന കളക്ഷനിലേക്ക് മാറ്റുന്നു
         const mainRef = db.collection("students").doc(studentName);
         batch.set(mainRef, studentData, { merge: true });
 
-        // 2. Weekly Toppers കളക്ഷനിലേക്ക് മാറ്റുന്നു
         const weeklyRef = db.collection("students_weekly").doc(studentName);
         batch.set(weeklyRef, studentData, { merge: true });
 
-        // 3. Monthly Toppers കളക്ഷനിലേക്ക് മാറ്റുന്നു
         const monthlyRef = db.collection("students_monthly").doc(studentName);
         batch.set(monthlyRef, studentData, { merge: true });
 
-        // ബാച്ച് ഒന്നിച്ച് എക്സിക്യൂട്ട് ചെയ്യുന്നു
         batch.commit().catch((error) => {
             console.error("ഡാറ്റാബേസ് അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ പരാജയം: ", error);
         });
