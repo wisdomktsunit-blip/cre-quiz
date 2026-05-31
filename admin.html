@@ -230,7 +230,7 @@
     </div>
 
     <div class="form-section">
-        <h3>പുതിയ ചോദ്യം ചേർക്കുക (പഴയത് ഓട്ടോമാറ്റിക് ആയി മാറും)</h3>
+        <h3>പുതിയ ചോദ്യം ചേർക്കുക</h3>
         <div class="form-group">
             <label>ചോദ്യം:</label>
             <input type="text" id="questionText" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക">
@@ -408,7 +408,7 @@
         });
     }
 
-    // ഒരു ചോദ്യം ആഡ് ചെയ്യുമ്പോൾ ഒരു പഴയ ചോദ്യം ഓട്ടോമാറ്റിക് ആയി കളയുന്ന ലോജിക്
+    // മാറ്റം വരുത്തിയ പുതിയ addQuestion ഫങ്ഷൻ - പഴയവ ഡിലീറ്റ് ചെയ്യില്ല
     function addQuestion() {
         const qText = document.getElementById('questionText').value;
         const o0 = document.getElementById('opt0').value;
@@ -422,31 +422,18 @@
             return;
         }
 
-        // ടൈംസ്റ്റാമ്പ് അടിസ്ഥാനമാക്കി ഏറ്റവും പഴയ ഒരു ചോദ്യം എടുക്കുന്നു
-        db.collection("quiz_questions").orderBy("timestamp", "asc").limit(1).get().then((querySnapshot) => {
-            let batch = db.batch();
-
-            // പഴയ ചോദ്യം ഉണ്ടെങ്കിൽ ഡിലീറ്റ് ചെയ്യാനായി ബാച്ചിലേക്ക് മാറ്റുന്നു
-            if(!querySnapshot.empty) {
-                querySnapshot.forEach((oldDoc) => {
-                    batch.delete(oldDoc.ref);
-                });
-            }
-
-            // പുതിയ ചോദ്യം ആഡ് ചെയ്യുന്നു
-            const newDocRef = db.collection("quiz_questions").doc();
-            batch.set(newDocRef, {
-                question: qText,
-                options: [o0, o1, o2, o3],
-                correctIndex: cIndex,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // കൃത്യമായ ടൈംസ്റ്റാമ്പ്
-            });
-
-            // ഒന്നിച്ച് ബാച്ച് എക്സിക്യൂട്ട് ചെയ്യുന്നു
-            batch.commit().then(() => {
-                alert("✅ പുതിയ ചോദ്യം വിജയകരമായി ചേർത്തു! പഴയ ചോദ്യം ഒഴിവാക്കപ്പെട്ടിരിക്കുന്നു.");
-                location.reload();
-            });
+        // പഴയത് ഡിലീറ്റ് ചെയ്യുന്ന ഭാഗം ഒഴിവാക്കി പുതിയ ചോദ്യം മാത്രം ആഡ് ചെയ്യുന്നു
+        db.collection("quiz_questions").add({
+            question: qText,
+            options: [o0, o1, o2, o3],
+            correctIndex: cIndex,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("✅ പുതിയ ചോദ്യം വിജയകരമായി ചേർത്തു!");
+            location.reload();
+        }).catch((error) => {
+            console.error("Error adding document: ", error);
+            alert("ചോദ്യം ചേർക്കാൻ സാധിച്ചില്ല. വീണ്ടും ശ്രമിക്കുക.");
         });
     }
 
@@ -546,26 +533,27 @@
     }
 
     function loadFeedbacksList() {
+        // മുൻപ് അപൂർണ്ണമായിരുന്ന ഈ ഫങ്ഷൻ കോഡ് കൃത്യമായി പൂർത്തിയാക്കിയിട്ടുണ്ട്
         const tbody = document.querySelector("#feedbackTable tbody");
+        if(!tbody) return;
         tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>ലോഡ് ചെയ്യുന്നു...</td></tr>";
 
         db.collection("feedbacks").orderBy("timestamp", "desc").get().then((querySnapshot) => {
             tbody.innerHTML = "";
             if(querySnapshot.empty) {
-                tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#718096;'>ഫീഡ്ബാക്കുകൾ ഒന്നും തന്നെ ലഭ്യമായിട്ടില്ല.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#718096;'>ഫീഡ്ബാക്കുകൾ ഒന്നും തന്നെ ലഭ്യമല്ല.</td></tr>";
                 return;
             }
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td><b>${data.name}</b></td><td>${data.feedback}</td><td><button class="btn-delete" onclick="deleteFeedback('${doc.id}')">Delete</button></td>`;
+                tr.innerHTML = `<td><b>${doc.data().name || 'Unknown'}</b></td><td>${doc.data().feedback || ''}</td><td><button class="btn-delete" onclick="deleteFeedback('${doc.id}')">Delete</button></td>`;
                 tbody.appendChild(tr);
             });
         });
     }
 
     function deleteFeedback(id) {
-        if(confirm("ഈ ഫീഡ്ബാക്ക് ലിസ്റ്റിൽ നിന്നും ഒഴിവാക്കണോ?")) {
+        if(confirm("ഈ ഫീഡ്ബാക്ക് ഒഴിവാക്കണോ?")) {
             db.collection("feedbacks").doc(id).delete().then(() => {
                 alert("ഫീഡ്ബാക്ക് ഒഴിവാക്കി!");
                 loadFeedbacksList();
